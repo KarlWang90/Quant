@@ -10,12 +10,14 @@ from quant.data.ingestion import (
     load_market_data_from_sources,
     load_fundamentals,
     load_events,
+    load_rdagent_signals,
 )
 from quant.data.cleaning import clean_market_data
 from quant.data.corporate_actions import apply_adjustments
 from quant.features.price_volume import build_price_volume_features
 from quant.features.fundamentals import merge_fundamentals
 from quant.features.events import merge_events
+from quant.features.rdagent import merge_rdagent_signals
 from quant.features.cross_market import add_market_context
 from quant.labels.future_return import add_forward_return
 from quant.models.train import train_model
@@ -33,7 +35,12 @@ def run_pipeline(config_path: str) -> None:
     cfg = load_config(config_path)
     setup_logging(cfg.paths.get("logs_dir", "data/logs"), cfg.data.get("logging", {}).get("level", "INFO"))
 
-    market = load_market_data_from_sources(cfg.paths["raw_dir"])
+    market_provider = cfg.data_sources.get("market", {})
+    market = load_market_data_from_sources(
+        cfg.paths["raw_dir"],
+        provider_cfg=market_provider,
+        universe_file=market_provider.get("universe_file"),
+    )
     market = clean_market_data(market)
     market = apply_adjustments(market)
 
@@ -45,10 +52,12 @@ def run_pipeline(config_path: str) -> None:
 
     fundamentals = load_fundamentals(cfg.paths["raw_dir"])
     events = load_events(cfg.paths["raw_dir"])
+    rdagent_signals = load_rdagent_signals(cfg.paths["raw_dir"])
 
     features = build_price_volume_features(market)
     features = merge_fundamentals(features, fundamentals)
     features = merge_events(features, events)
+    features = merge_rdagent_signals(features, rdagent_signals)
     features = add_market_context(features)
     features = add_forward_return(features, horizon=cfg.labels.get("horizon_days", 5))
 

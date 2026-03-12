@@ -47,6 +47,10 @@ class Config:
     def messaging(self) -> Dict[str, Any]:
         return self.data.get("messaging", {})
 
+    @property
+    def data_sources(self) -> Dict[str, Any]:
+        return self.data.get("data_sources", {})
+
 
 def load_config(path: str | Path) -> Config:
     path = Path(path)

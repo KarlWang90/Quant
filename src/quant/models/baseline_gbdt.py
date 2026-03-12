@@ -16,6 +16,7 @@ FEATURE_COLUMNS = [
     "vol_chg",
     "market_ret_1d",
     "news_score",
+    "rdagent_score",
     "pe_ttm",
     "pb",
     "roe",

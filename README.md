@@ -68,6 +68,66 @@ data/signals/           # Signal outputs
 - A-share / HK calendars are inferred from data date columns by default.
 - The baseline model uses sklearn GBDT and can be replaced with deep models later.
 
+## Real Data Sources (A-share)
+
+The pipeline can fetch A-share data directly using one of these providers:
+
+- `baostock` (free): best for low-budget daily data
+- `tushare` (token required): richer data, requires `TUSHARE_TOKEN`
+- `akshare` (free): broad coverage but varying stability
+
+Configure in `config/base.yaml`:
+
+```yaml
+data_sources:
+  market:
+    provider: baostock
+    start: "2020-01-01"
+    end: "2024-12-31"
+    universe_file: config/universe.yaml
+```
+
+Install the provider you choose:
+
+```bash
+pip install baostock
+# or
+pip install tushare
+# or
+pip install akshare
+```
+
+If using Tushare, set token in `.env`:
+
+```
+TUSHARE_TOKEN=your_token_here
+```
+
+HK data is not fetched automatically yet. For now, provide HK prices via
+`data/raw/market.csv` or extend `hkex_adapter.py` once you have a licensed feed.
+
+## RD-Agent (Separate Research Runner)
+
+RD-Agent is integrated as a **separate** research workflow. You run RD-Agent in a Linux environment,
+export its output to CSV, then import into this system as an optional feature.
+
+Steps:
+
+1. Run RD-Agent on Linux and export a CSV of factor scores or signals.
+2. Import it into local format:
+
+```bash
+python scripts/rdagent/import_signals.py \
+  --input /path/to/rdagent_output.csv \
+  --date-col date \
+  --ticker-col ticker \
+  --score-col score \
+  --output data/raw/rdagent_signals.csv
+```
+
+If `data/raw/rdagent_signals.csv` exists, the pipeline will merge `rdagent_score`
+as an extra feature.
+
 ## License
 
 Private use only by default. Update as needed.

@@ -10,6 +10,14 @@ paths:
   signals_dir: data/signals
   logs_dir: data/logs
 
+data_sources:
+  market:
+    # csv | baostock | tushare | akshare
+    provider: baostock
+    start: "2020-01-01"
+    end: "2024-12-31"
+    universe_file: config/universe.yaml
+
 universe:
   markets: [A_SHARE, HK]
   instruments: [STOCK, ETF]

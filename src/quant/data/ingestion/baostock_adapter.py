@@ -5,6 +5,8 @@ from typing import List
 
 import pandas as pd
 
+from quant.data.symbols import baostock_to_a_share
+
 
 def fetch_daily(universe: List[str], start: str, end: str) -> pd.DataFrame:
     if importlib.util.find_spec("baostock") is None:
@@ -27,7 +29,9 @@ def fetch_daily(universe: List[str], start: str, end: str) -> pd.DataFrame:
             data_list.append(rs.get_row_data())
         if data_list:
             df = pd.DataFrame(data_list, columns=rs.fields)
-            df["ticker"] = ticker
+            df["ticker"] = baostock_to_a_share(ticker)
+            df["market"] = "A_SHARE"
+            df.rename(columns={"turn": "turnover"}, inplace=True)
             frames.append(df)
     bs.logout()
     if not frames:

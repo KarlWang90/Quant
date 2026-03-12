@@ -32,3 +32,9 @@
 - ticker
 - market
 - news_score: numeric sentiment
+
+## RD-Agent Signals (optional)
+- date
+- ticker
+- market
+- rdagent_score: numeric score from RD-Agent research
