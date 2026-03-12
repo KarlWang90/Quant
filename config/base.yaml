@@ -1,0 +1,56 @@
+project:
+  name: local-quant
+  timezone: Asia/Shanghai
+  currency: CNY
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  features_dir: data/features
+  signals_dir: data/signals
+  logs_dir: data/logs
+
+universe:
+  markets: [A_SHARE, HK]
+  instruments: [STOCK, ETF]
+  allow_suspended: false
+  min_avg_turnover_20d: 5e6
+  max_positions: 15
+
+trading:
+  lot_size:
+    A_SHARE: 100
+    HK: 100
+  min_cash_buffer: 0.05
+  rebalance_freq: WEEKLY
+  execution_delay_days: 1
+  max_turnover: 0.2
+
+cost_model:
+  commission_rate: 0.0003
+  stamp_duty_rate: 0.001
+  slippage_bps: 5
+
+labels:
+  horizon_days: 5
+  target: forward_return
+
+model:
+  type: gbdt
+  params:
+    n_estimators: 300
+    max_depth: 3
+    learning_rate: 0.05
+
+signal:
+  top_k: 10
+  min_score: 0.0
+  score_name: pred_return
+
+messaging:
+  channel: openclaw
+  mode: notify_only
+  risk_note: "Low-frequency manual confirmation required"
+
+logging:
+  level: INFO

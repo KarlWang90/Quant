@@ -1,0 +1,3 @@
+date,ticker,market,open,high,low,close,volume,turnover,adj_factor
+2024-12-02,000001.SZ,A_SHARE,11.0,11.4,10.9,11.2,23000000,257600000,1.0
+2024-12-02,0700.HK,HK,308.0,315.0,305.0,312.0,5200000,1622400000,1.0

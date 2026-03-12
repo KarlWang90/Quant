@@ -1,0 +1,9 @@
+A_SHARE:
+  - 000001.SZ
+  - 000002.SZ
+  - 600000.SH
+  - 510300.SH   # CSI 300 ETF
+HK:
+  - 0700.HK
+  - 0939.HK
+  - 2800.HK     # Hang Seng Index ETF
