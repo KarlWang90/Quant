@@ -38,3 +38,28 @@
 - ticker
 - market
 - rdagent_score: numeric score from RD-Agent research
+
+## Signal History Output
+- date
+- ticker
+- market
+- pred_return
+- signal
+- weight
+- avg_turnover_20d (if available)
+
+## Order Output
+- date
+- ticker
+- market
+- side
+- trade_qty
+- close
+- current_qty
+- target_qty
+- target_weight
+- pred_return
+- estimated_trade_value
+- estimated_cost
+- reason
+- approval_status

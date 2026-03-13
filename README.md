@@ -49,6 +49,14 @@ python scripts/run_pipeline.py --config config/base.yaml
 - `data/signals/`
 - `data/logs/`
 
+7. Review and confirm pending orders:
+
+```bash
+python scripts/approve_orders.py --decision approve
+# or
+python scripts/approve_orders.py --decision reject
+```
+
 ## Directory Layout
 
 ```
@@ -67,6 +75,9 @@ data/signals/           # Signal outputs
   or `OPENCLAW_MESSAGE_FILE` in `.env` for real messaging.
 - A-share / HK calendars are inferred from data date columns by default.
 - The baseline model uses sklearn GBDT and can be replaced with deep models later.
+- The main pipeline now uses walk-forward scoring, writes `signal_history.csv`,
+  and produces `latest_orders.csv` with `approval_status=PENDING`.
+- Approval requests are logged under `data/logs/approval_request_*.csv`.
 
 ## Real Data Sources (A-share)
 

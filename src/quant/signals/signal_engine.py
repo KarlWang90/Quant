@@ -7,6 +7,7 @@ def build_signals(df: pd.DataFrame, score_col: str = "pred_return", top_k: int =
     if df.empty:
         return df
     out = df.copy()
+    out = out.dropna(subset=[score_col])
     out = out[out[score_col] >= min_score]
     out = out.sort_values(["date", score_col], ascending=[True, False])
     out = out.groupby("date").head(top_k).reset_index(drop=True)

@@ -5,6 +5,7 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+from quant.utils.dates import ensure_datetime
 from quant.utils.io import read_csv
 from .broker_csv import load_positions_csv, load_trades_csv
 from .akshare_adapter import fetch_daily as akshare_fetch_daily
@@ -27,10 +28,27 @@ def load_trades(path: str | Path) -> pd.DataFrame:
     return load_trades_csv(path)
 
 
+def load_positions_snapshot(raw_dir: str | Path) -> pd.DataFrame:
+    path = Path(raw_dir) / "positions.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return load_positions_csv(path)
+
+
+def load_trade_history(raw_dir: str | Path) -> pd.DataFrame:
+    path = Path(raw_dir) / "trades.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return load_trades_csv(path)
+
+
 def _load_optional_csv(raw_dir: Path, name: str) -> pd.DataFrame:
     path = raw_dir / name
     if path.exists():
-        return read_csv(path)
+        df = read_csv(path)
+        if "date" in df.columns:
+            df = ensure_datetime(df, "date")
+        return df
     return pd.DataFrame()
 
 

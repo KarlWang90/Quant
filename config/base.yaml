@@ -29,6 +29,7 @@ trading:
   lot_size:
     A_SHARE: 100
     HK: 100
+  default_portfolio_value: 100000
   min_cash_buffer: 0.05
   rebalance_freq: WEEKLY
   execution_delay_days: 1
@@ -49,6 +50,11 @@ model:
     n_estimators: 300
     max_depth: 3
     learning_rate: 0.05
+
+validation:
+  mode: walk_forward
+  min_train_dates: 60
+  retrain_every_n_dates: 20
 
 signal:
   top_k: 10

@@ -10,7 +10,9 @@ from quant.data.ingestion import (
     load_market_data_from_sources,
     load_fundamentals,
     load_events,
+    load_positions_snapshot,
     load_rdagent_signals,
+    load_trade_history,
 )
 from quant.data.cleaning import clean_market_data
 from quant.data.corporate_actions import apply_adjustments
@@ -20,14 +22,14 @@ from quant.features.events import merge_events
 from quant.features.rdagent import merge_rdagent_signals
 from quant.features.cross_market import add_market_context
 from quant.labels.future_return import add_forward_return
-from quant.models.train import train_model
-from quant.models.baseline_gbdt import predict_gbdt
+from quant.models.train import walk_forward_train_and_predict
 from quant.signals.signal_engine import build_signals
 from quant.portfolio.constraints import apply_constraints
 from quant.portfolio.optimizer import equal_weight
+from quant.execution.approval import write_approval_request
+from quant.execution.message_builder import build_trading_suggestion_message
 from quant.execution.order_builder import build_orders
 from quant.execution.openclaw import OpenClawMessenger
-from quant.execution.messenger import Message
 from quant.monitoring.report import generate_signal_report
 
 
@@ -53,6 +55,8 @@ def run_pipeline(config_path: str) -> None:
     fundamentals = load_fundamentals(cfg.paths["raw_dir"])
     events = load_events(cfg.paths["raw_dir"])
     rdagent_signals = load_rdagent_signals(cfg.paths["raw_dir"])
+    positions = load_positions_snapshot(cfg.paths["raw_dir"])
+    trades = load_trade_history(cfg.paths["raw_dir"])
 
     features = build_price_volume_features(market)
     features = merge_fundamentals(features, fundamentals)
@@ -64,8 +68,14 @@ def run_pipeline(config_path: str) -> None:
     features_path = Path(cfg.paths.get("features_dir", "data/features")) / "features.csv"
     write_csv(features, features_path)
 
-    model_result = train_model(features, cfg.model, cfg.labels.get("target", "forward_return"))
-    scored = predict_gbdt(model_result.model, features)
+    model_result = walk_forward_train_and_predict(
+        features,
+        cfg.model,
+        cfg.labels.get("target", "forward_return"),
+        min_train_dates=cfg.validation.get("min_train_dates", 60),
+        retrain_every_n_dates=cfg.validation.get("retrain_every_n_dates", 20),
+    )
+    scored = model_result.model
 
     signals = build_signals(
         scored,
@@ -73,19 +83,39 @@ def run_pipeline(config_path: str) -> None:
         top_k=cfg.signal.get("top_k", 10),
         min_score=cfg.signal.get("min_score", 0.0),
     )
-    signals = apply_constraints(signals, max_positions=cfg.universe.get("max_positions", 15))
+    signals = apply_constraints(
+        signals,
+        context_df=scored,
+        max_positions=cfg.universe.get("max_positions", 15),
+        min_avg_turnover_20d=cfg.universe.get("min_avg_turnover_20d", 0.0),
+        allow_suspended=cfg.universe.get("allow_suspended", False),
+    )
     signals = equal_weight(signals)
+    write_csv(signals, Path(cfg.paths.get("signals_dir", "data/signals")) / "signal_history.csv")
 
-    orders = build_orders(signals)
+    orders = build_orders(
+        signals,
+        market,
+        positions=positions,
+        trades=trades,
+        trading_cfg=cfg.trading,
+        cost_cfg=cfg.cost_model,
+        score_col=cfg.signal.get("score_name", "pred_return"),
+    )
     report_path = generate_signal_report(orders, cfg.paths.get("signals_dir", "data/signals"))
+    latest_orders_path = Path(cfg.paths.get("signals_dir", "data/signals")) / "latest_orders.csv"
+    write_csv(orders, latest_orders_path)
+    approval_path = write_approval_request(orders, cfg.paths.get("logs_dir", "data/logs"))
 
-    msg = Message(
-        title=f"Trading Suggestions ({report_path.name})",
-        body=f"Generated {len(orders)} orders. Report saved to {report_path}.",
+    msg = build_trading_suggestion_message(
+        orders,
+        report_path=report_path,
+        approval_path=approval_path,
+        metrics=model_result.metrics,
+        risk_note=cfg.messaging.get("risk_note", "Manual approval required."),
+        score_col=cfg.signal.get("score_name", "pred_return"),
     )
     OpenClawMessenger().send(msg)
-
-    write_csv(orders, Path(cfg.paths.get("signals_dir", "data/signals")) / "latest_orders.csv")
 
 
 def main() -> None:

@@ -40,6 +40,10 @@ class Config:
         return self.data.get("model", {})
 
     @property
+    def validation(self) -> Dict[str, Any]:
+        return self.data.get("validation", {})
+
+    @property
     def signal(self) -> Dict[str, Any]:
         return self.data.get("signal", {})
 
