@@ -16,9 +16,9 @@ from quant.portfolio.backtest import run_backtest
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Backtest latest signals")
+    parser = argparse.ArgumentParser(description="Backtest historical signal file")
     parser.add_argument("--config", required=True)
-    parser.add_argument("--signals", default="data/signals/latest_orders.csv")
+    parser.add_argument("--signals", default="data/signals/signal_history.csv")
     args = parser.parse_args()
 
     cfg = load_config(args.config)

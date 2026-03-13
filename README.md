@@ -13,6 +13,10 @@ This repository implements a local, data-driven quant trading system scaffold wi
 
 > This is an engineering framework. It is not investment advice.
 
+Chinese user guide:
+
+- `docs/USER_GUIDE_ZH.md`
+
 ## Quick Start
 
 1. Create a Python environment and install deps:
@@ -42,6 +46,12 @@ cp .env.example .env
 python scripts/run_pipeline.py --config config/base.yaml
 ```
 
+Quick A-share end-to-end smoke test:
+
+```bash
+python scripts/demo_a_share_smoke.py
+```
+
 6. Inspect outputs:
 
 - `data/processed/`
@@ -55,6 +65,12 @@ python scripts/run_pipeline.py --config config/base.yaml
 python scripts/approve_orders.py --decision approve
 # or
 python scripts/approve_orders.py --decision reject
+```
+
+8. Backtest historical signal history:
+
+```bash
+python scripts/backtest.py --config config/base.yaml
 ```
 
 ## Directory Layout
